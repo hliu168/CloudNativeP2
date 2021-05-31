@@ -1,0 +1,86 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: postgres-volume-person
+  labels:
+    type: local
+    app: postgres-person
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 256Mi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/mnt/data/person"
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: postgres-pv-claim-person
+  labels:
+    app: postgres-person
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-person
+  labels:
+    app: postgres-person
+spec:
+  type: NodePort
+  selector:
+    app: postgres-person
+  ports:
+   - port: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-person
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-person
+  template:
+    metadata:
+      labels:
+        app: postgres-person
+    spec:
+      containers:
+        - name: postgres-person
+          image: postgis/postgis:12-2.5-alpine
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 5432
+          env:
+          - name: POSTGRES_USER
+            valueFrom:
+              configMapKeyRef:
+                name: db-env-person
+                key: DB_USERNAME
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: db-secret-person
+                key: DB_PASSWORD
+          - name: POSTGRES_DB
+            valueFrom:
+              configMapKeyRef:
+                name: db-env-person
+                key: DB_NAME
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/person
+              name: postgresdb-person
+      volumes:
+        - name: postgresdb-person
+          persistentVolumeClaim:
+            claimName: postgres-pv-claim-person
