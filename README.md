@@ -88,8 +88,7 @@ Inside usPerson and usLocation folders, you will find a scrips folder to seed da
 Note: The first time you run this project, you will need to seed the database with dummy data. Use the command `sh scripts/run_db_command.sh <POD_NAME>` against the `postgres`-person or `postgres`-location pod, depending on where this scripts folder locates inside. (`kubectl get pods` will give you the `POD_NAME`). Subsequent runs of `kubectl apply` for making changes to deployments or services shouldn't require you to seed the database again!
 
 ### Verifying it Works
-Once the project is up and running, you should be able to see 3 deployments and 3 services in Kubernetes:
-`kubectl get pods` and `kubectl get services` - should both return `udaconnect-app`, `udaconnect-api`, and `postgres`
+Once the project is up and running, you should be able to see the udaconnect frontend in your browser
 
 
 These pages should also load on your web browser:
