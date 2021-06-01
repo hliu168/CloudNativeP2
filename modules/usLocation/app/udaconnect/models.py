@@ -11,21 +11,11 @@ from sqlalchemy import BigInteger, Column, Date, DateTime, ForeignKey, Integer, 
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.hybrid import hybrid_property
 
-
-class Person(db.Model):
-    __tablename__ = "person"
-
-    id = Column(Integer, primary_key=True)
-    first_name = Column(String, nullable=False)
-    last_name = Column(String, nullable=False)
-    company_name = Column(String, nullable=False)
-
-
 class Location(db.Model):
     __tablename__ = "location"
 
     id = Column(BigInteger, primary_key=True)
-    person_id = Column(Integer, ForeignKey(Person.id), nullable=False)
+    person_id = Column(Integer, nullable=False)
     coordinate = Column(Geometry("POINT"), nullable=False)
     creation_time = Column(DateTime, nullable=False, default=datetime.utcnow)
     _wkt_shape: str = None
@@ -56,9 +46,3 @@ class Location(db.Model):
     def latitude(self) -> str:
         coord_text = self.wkt_shape
         return coord_text[coord_text.find("(") + 1 : coord_text.find(" ")]
-
-
-@dataclass
-class Connection:
-    location: Location
-    person: Person

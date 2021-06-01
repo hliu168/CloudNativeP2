@@ -1,0 +1,29 @@
+{
+	"info": {
+		"_postman_id": "2a792a7d-6a3b-4ded-ae2d-586ae196cef0",
+		"name": "postman",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "GetLocation",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:30002/api/locations/64",
+					"host": [
+						"localhost"
+					],
+					"port": "30002",
+					"path": [
+						"api",
+						"locations",
+						"64"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
