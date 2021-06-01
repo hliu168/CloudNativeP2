@@ -23,16 +23,7 @@ class ConnectionService:
         large datasets. This is by design: what are some ways or techniques to help make this data integrate more
         smoothly for a better user experience for API consumers?
         """
-        locations: List = db.session.query(Location).filter(
-            Location.person_id == person_id
-        ).filter(Location.creation_time < end_date).filter(
-            Location.creation_time >= start_date
-        ).all()
-
-        # Cache all users in memory for quick lookup
-        person_map: Dict[str, Person] = {person["id"]: person for person in PersonService.retrieve_all()}
-
-        # Prepare arguments for queries
+        locations: List = LocationService.findLocations(person_id, start_date, end_date)
         data = []
         for location in locations:
             data.append(
@@ -45,40 +36,55 @@ class ConnectionService:
                     "end_date": (end_date + timedelta(days=1)).strftime("%Y-%m-%d"),
                 }
             )
+        # Cache all users in memory for quick lookup
+        person_map: Dict[str, Person] = {person["id"]: person for person in PersonService.retrieve_all()}
 
-        query = text(
-            """
-        SELECT  person_id, id, ST_X(coordinate), ST_Y(coordinate), creation_time
-        FROM    location
-        WHERE   ST_DWithin(coordinate::geography,ST_SetSRID(ST_MakePoint(:latitude,:longitude),4326)::geography, :meters)
-        AND     person_id != :person_id
-        AND     TO_DATE(:start_date, 'YYYY-MM-DD') <= creation_time
-        AND     TO_DATE(:end_date, 'YYYY-MM-DD') > creation_time;
-        """
-        )
+        # Prepare arguments for queries
+
         result: List[Connection] = []
-        for line in tuple(data):
-            for (
-                exposed_person_id,
-                location_id,
-                exposed_lat,
-                exposed_long,
-                exposed_time,
-            ) in db.engine.execute(query, **line):
-                location = Location(
-                    id=location_id,
-                    person_id=exposed_person_id,
-                    creation_time=exposed_time,
-                )
-                location.set_wkt_with_coords(exposed_lat, exposed_long)
-
+        for line in data:
+            for location in LocationService.findLocation(person_id=line["person_id"], start_date=line["start_date"], end_date=line["end_date"],
+                    meters=line["meters"], latitude=line["latitude"], longitude=line["longitude"]):
                 result.append(
                     Connection(
-                        person=person_map[exposed_person_id], location=location,
+                        person=person_map[location.person_id], location=location,
                     )
                 )
-
+            
         return result
+
+
+class LocationService:
+    @staticmethod
+    def findLocations(person_id, start_date, end_date) -> List[Location]:
+        location_list: List[Location] = []
+        res = requests.get("http://location-api:5000/api/locationsinfo/person/{}?start_date={}&end_date={}".format(person_id, start_date, end_date))
+        locations = res.json()
+
+        for locationJson in locations:
+            location = Location()
+            location.id = locationJson['id']
+            location.person_id = locationJson['person_id']
+            location.set_wkt_with_coords(locationJson['latitude'], locationJson['longitude'])
+            location.creation_time = datetime.strptime(locationJson['creation_time'], "%Y-%m-%dT%H:%M:%S")
+            location_list.append(location)
+        return location_list
+    
+    @staticmethod
+    def findLocation(person_id, start_date, end_date, meters, latitude, longitude) -> List[Location]:
+        res = requests.get("http://location-api:5000/api/locationinfo/person/{}?start_date={}&end_date={}&meters={}&latitude={}&longitude={}"
+                .format(person_id, start_date, end_date, meters, latitude, longitude))
+        location_list: List[Location] = []
+        locations = res.json()
+        for locationJson in locations:
+            location = Location()
+            location.id = locationJson['id']
+            location.person_id = locationJson['person_id']
+            location.set_wkt_with_coords(locationJson['latitude'], locationJson['longitude'])
+            location.creation_time = datetime.strptime(locationJson['creation_time'], "%Y-%m-%dT%H:%M:%S")
+            location_list.append(location)
+        return location_list
+
 
 class PersonService:
     @staticmethod

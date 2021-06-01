@@ -9,6 +9,6 @@ Architecture Decisions
 
 4.Person microservice own's its database to allow independent person microservice to be implemented. This is good practice and helps praticing the design and implementation of microservices. When connection microservice needs to retrieve the list of persons, it calls the persons REST API endpoint, to implement and pratice microservice communication.
 
-5.Location and Connection microservice currently shares one database. This is possible as location database is deployed in it's own pod. The current reason behind the sharing were 2 reasons:
--- 1) The connection service only query the location database, it don't need to write the location DB, where in reality the connection service can work by query a read replica of the location database, this makes sense.
--- 2) Although it would be a good practice exercise for student to implement 2 other RESTful microservice api endpoints for location service such that the connection service work by calling the RESTful API endpoint, the essense of the extra work has been completed for microservice communication between person microservice and connection microservice and student already get the idea. Considering the fact go from the beginning to the current stage with a working application already took the student almost a week of time, student decided to save the effort for a future lesson in the nanodegree.
+5.Location microservice own's its database to allow independent injection/retrieval of Location data. This is good pratice and helps isolate the design and implementation of the microservice.
+
+6.Connection microservice don't have it's own database. Instead, it relies on microservice communication by message passing with location service and person service to get it's work done.

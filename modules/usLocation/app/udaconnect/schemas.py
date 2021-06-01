@@ -13,3 +13,12 @@ class LocationSchema(Schema):
 
     class Meta:
         model = Location
+
+
+class LocationInfoSchema(Schema):
+    person_id = fields.Integer()
+    longitude = fields.String(attribute="longitude")
+    latitude = fields.String(attribute="latitude")
+    meters = fields.Integer()
+    start_date = fields.DateTime()
+    end_date = fields.DateTime()
