@@ -1,0 +1,21 @@
+pipeline {
+    agent any
+    options { 
+        timestamps()
+        ansiColor('xterm')
+        disableConcurrentBuilds()
+        skipDefaultCheckout(true)
+    }
+    stages {
+        stage('Prepare Build Env') {
+            steps {
+                script {
+                    
+                    cleanWs()
+                    deleteDir()
+                    checkout scm
+                }
+            }
+        }
+    }
+}
