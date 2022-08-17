@@ -15,6 +15,7 @@ pipeline {
                     cleanWs()
                     deleteDir()
                     checkout scm
+                    sh "printenv"
                 }
             }
         }
