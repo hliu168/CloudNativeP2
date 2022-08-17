@@ -13,7 +13,13 @@ pipeline {
                     cleanWs()
                     deleteDir()
                     checkout scm
-                    sh "printenv"
+                    sh '''#!/bin/bash
+                    printenv
+                    COMMIT_ID_LONG=$(git rev-parse HEAD)
+                    COMMIT_ID_SHORT=$(git rev-parse --short HEAD)
+                    echo "COMMIT_ID_LONG: $COMMIT_ID_LONG"
+                    echo "COMMIT_ID_SHORT: $COMMIT_ID_SHORT"
+                    '''
                 }
             }
         }
