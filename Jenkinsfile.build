@@ -10,8 +10,6 @@ pipeline {
         stage('Prepare Build Env') {
             steps {
                 script {
-                    echo "${BUILD_NUMBER}"
-                    echo "${VERSION}"
                     cleanWs()
                     deleteDir()
                     checkout scm
